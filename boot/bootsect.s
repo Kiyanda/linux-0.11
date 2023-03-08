@@ -90,16 +90,27 @@ ok_load_setup:
 	mov	es,ax
 
 ! Print some inane message
-
-	mov	ah,#0x03		! read cursor pos
-	xor	bh,bh
-	int	0x10
 	
-	mov	cx,#24
-	mov	bx,#0x0007		! page 0, attribute 7 (normal)
+	call read_cursor
+	mov	cx,#2
+	mov	bx,#0x0007		! page 0, attribute 7 (normal, white color)
 	mov	bp,#msg1
 	mov	ax,#0x1301		! write string, move cursor
 	int	0x10
+
+	call read_cursor
+	mov cx, #6
+	mov bx, #0x0009		! page 0, attribute 9(bright blue color)
+	mov bp, #msg1+2
+	mov ax, #0x1301		! write string, move cursor
+	int 0x10
+	
+	call read_cursor
+	mov cx, #18
+	mov bx, #0x0007		! page 0, attribute 7(normal, white color)
+	mov bp, #msg1+8
+	mov ax, #0x1301		! write string, move cursor
+	int 0x10
 
 ! ok, we've written the message, now
 ! we want to load the system (at 0x10000)
@@ -225,6 +236,16 @@ bad_rt:	mov ax,#0
 	pop ax
 	jmp read_track
 
+read_cursor:
+	push ax
+	push bx
+	mov	ah,#0x03		! read cursor pos
+	xor	bh,bh
+	int	0x10
+	pop bx
+	pop ax
+	ret
+
 !/*
 ! * This procedure turns off the floppy drive motor, so
 ! * that we enter the kernel in a known state, and
@@ -243,7 +264,7 @@ sectors:
 
 msg1:
 	.byte 13,10
-	.ascii "Loading system ..."
+	.ascii "Qiunix is loading..."
 	.byte 13,10,13,10
 
 .org 508
